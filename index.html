@@ -879,13 +879,8 @@
 
                 scanButton.disabled = true;
 
-                // Countdown
-                for (let i = 3; i > 0; i--) {
-                    countdownDiv.textContent = i;
-                    countdownDiv.classList.remove("hidden");
-                    await new Promise((resolve) => setTimeout(resolve, 1000));
-                }
                 countdownDiv.classList.add("hidden");
+
 
                 // Collect samples
                 const samples = [];
