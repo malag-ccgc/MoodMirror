@@ -1,507 +1,414 @@
 <!doctype html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>MoodMirror - AI Face Analysis</title>
-        <meta
-            name="description"
-            content="Real-time emotion detection using AI and facial recognition"
-        />
-        <script
-            defer
-            src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"
-        ></script>
-        <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-        <style>
-            * {
-                margin: 0;
-                padding: 0;
-                box-sizing: border-box;
-            }
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MoodMirror - AI Face Analysis</title>
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api/dist/face-api.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-            body {
-                font-family:
-                    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-                    sans-serif;
-                background: #fafafa;
-                color: #2c3e50;
-                line-height: 1.6;
-            }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #fafafa;
+            color: #2c3e50;
+            line-height: 1.6;
+        }
 
-            .container {
-                max-width: 1200px;
-                margin: 0 auto;
-                padding: 20px;
-            }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
 
-            .screen {
-                display: none;
-                min-height: 100vh;
-                align-items: center;
-                justify-content: center;
-            }
+        .screen {
+            display: none;
+            min-height: 100vh;
+            align-items: center;
+            justify-content: center;
+        }
 
-            .screen.active {
-                display: flex;
-            }
+        .screen.active {
+            display: flex;
+        }
 
-            .card {
-                background: white;
-                border-radius: 12px;
-                padding: 32px;
-                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-                width: 100%;
-                max-width: 500px;
-            }
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 32px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 500px;
+        }
 
-            .card-wide {
-                max-width: 1200px;
-            }
+        .card-wide {
+            max-width: 1200px;
+        }
 
-            .header {
-                text-align: center;
-                margin-bottom: 32px;
-            }
+        .header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
 
-            .logo {
-                width: 120px;
-                height: 120px;
-                margin-bottom: 16px;
-                object-fit: contain;
-            }
+        .logo {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 16px;
+            display: block;
+            object-fit: contain;
+        }
 
-            h1 {
-                font-size: 24px;
-                font-weight: 600;
-                margin-bottom: 8px;
-                color: #1a202c;
-            }
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #1a202c;
+        }
 
-            .subtitle {
-                color: #718096;
-                font-size: 14px;
-            }
+        .subtitle {
+            color: #718096;
+            font-size: 14px;
+        }
 
-            button {
-                width: 100%;
-                padding: 12px 24px;
-                background: #2c3e50;
-                color: white;
-                border: none;
-                border-radius: 6px;
-                font-size: 14px;
-                font-weight: 600;
-                cursor: pointer;
-                transition: background 0.2s;
-            }
+        button {
+            width: 100%;
+            padding: 12px 24px;
+            background: #2c3e50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
 
-            button:hover:not(:disabled) {
-                background: #1a252f;
-            }
+        button:hover:not(:disabled) {
+            background: #1a252f;
+        }
 
-            button:disabled {
-                opacity: 0.5;
-                cursor: not-allowed;
-            }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
-            button.secondary {
-                background: #e2e8f0;
-                color: #2c3e50;
-            }
+        button.secondary {
+            background: #e2e8f0;
+            color: #2c3e50;
+        }
 
-            button.secondary:hover:not(:disabled) {
-                background: #cbd5e0;
-            }
+        button.secondary:hover:not(:disabled) {
+            background: #cbd5e0;
+        }
 
-            .button-group {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 12px;
-                margin-top: 20px;
-            }
+        .video-container {
+            position: relative;
+            background: black;
+            border-radius: 8px;
+            overflow: hidden;
+            aspect-ratio: 16 / 9;
+            margin-bottom: 20px;
+        }
 
-            .video-container {
-                position: relative;
-                background: black;
-                border-radius: 8px;
-                overflow: hidden;
-                aspect-ratio: 16 / 9;
-                margin-bottom: 20px;
-            }
+        video, canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
-            video,
-            canvas {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-            }
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
 
-            canvas {
-                position: absolute;
-                top: 0;
-                left: 0;
-            }
+        .scan-info {
+            position: absolute;
+            bottom: 12px;
+            left: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
 
-            .badge {
-                position: absolute;
-                top: 12px;
-                right: 12px;
-                padding: 6px 14px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: 600;
-            }
+        .face-emotion-card {
+            background: white;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+            border: 1px solid #e2e8f0;
+        }
 
-            .badge.success {
-                background: #c6f6d5;
-                color: #22543d;
-            }
+        .face-emotion-card h4 {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            color: #718096;
+            margin-bottom: 8px;
+        }
 
-            .badge.scanning {
-                background: #fef3c7;
-                color: #92400e;
-            }
+        .emotion-bar {
+            margin-bottom: 12px;
+        }
 
-            .scan-info {
-                position: absolute;
-                bottom: 12px;
-                left: 12px;
-                background: rgba(0, 0, 0, 0.7);
-                color: white;
-                padding: 8px 14px;
-                border-radius: 20px;
-                font-size: 12px;
-                font-weight: 600;
-            }
+        .emotion-bar-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
 
-            .emotions-panel {
-                background: #f7fafc;
-                padding: 20px;
-                border-radius: 8px;
-                max-height: 600px;
-                overflow-y: auto;
-            }
+        .emotion-bar-label strong {
+            font-weight: 600;
+        }
 
-            .emotions-panel h3 {
-                font-size: 12px;
-                font-weight: 600;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                margin-bottom: 16px;
-                color: #4a5568;
-            }
+        .progress {
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
 
-            .face-emotion-card {
-                background: white;
-                border-radius: 8px;
-                padding: 12px;
-                margin-bottom: 12px;
-                border: 1px solid #e2e8f0;
-            }
+        .progress-fill {
+            height: 100%;
+            background: #3182ce;
+            transition: width 0.3s ease;
+        }
 
-            .face-emotion-card h4 {
-                font-size: 11px;
-                font-weight: 600;
-                text-transform: uppercase;
-                color: #718096;
-                margin-bottom: 8px;
-            }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
 
-            .emotion-bar {
-                margin-bottom: 12px;
-            }
+        .stat-card {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
 
-            .emotion-bar-label {
-                display: flex;
-                justify-content: space-between;
-                font-size: 11px;
-                margin-bottom: 4px;
-            }
+        .stat-value {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
 
-            .emotion-bar-label strong {
-                font-weight: 600;
-            }
+        .stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #718096;
+        }
 
-            .emotion-bar-label span {
-                font-family: "Courier New", monospace;
-                font-weight: 600;
-            }
+        .chart-container {
+            background: white;
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
 
-            .progress {
-                width: 100%;
-                height: 6px;
-                background: #e2e8f0;
-                border-radius: 4px;
-                overflow: hidden;
-            }
+        .chart-title {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #2c3e50;
+        }
 
-            .progress-fill {
-                height: 100%;
-                background: #3182ce;
-                transition: width 0.3s ease;
-            }
+        .grid-2col {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 24px;
+        }
 
-            .stats-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-                gap: 16px;
-                margin-bottom: 24px;
-            }
+        .emotions-panel {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 8px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
 
-            .stat-card {
-                background: #f7fafc;
-                padding: 20px;
-                border-radius: 8px;
-                text-align: center;
-            }
+        .emotions-panel h3 {
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 16px;
+            color: #4a5568;
+        }
 
-            .stat-value {
-                font-size: 32px;
-                font-weight: bold;
-                color: #2c3e50;
-                margin-bottom: 4px;
-            }
+        .export-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 20px;
+        }
 
-            .stat-label {
-                font-size: 11px;
-                text-transform: uppercase;
-                letter-spacing: 0.5px;
-                color: #718096;
-            }
-
-            .chart-container {
-                background: white;
-                border-radius: 8px;
-                padding: 24px;
-                margin-bottom: 24px;
-                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-            }
-
-            .chart-title {
-                font-size: 14px;
-                font-weight: 600;
-                margin-bottom: 16px;
-                color: #2c3e50;
-            }
-
+        @media (max-width: 768px) {
             .grid-2col {
-                display: grid;
-                grid-template-columns: 2fr 1fr;
-                gap: 24px;
+                grid-template-columns: 1fr;
             }
-
-            @media (max-width: 768px) {
-                .grid-2col {
-                    grid-template-columns: 1fr;
-                }
-                .button-group {
-                    grid-template-columns: 1fr;
-                }
-            }
-
-            .hidden {
-                display: none !important;
-            }
-
-            .back-button {
-                display: inline-flex;
-                align-items: center;
-                gap: 8px;
-                background: #e2e8f0;
-                color: #2c3e50;
-                padding: 8px 16px;
-                border-radius: 6px;
-                font-size: 14px;
-                font-weight: 600;
-                cursor: pointer;
-                border: none;
-                margin-bottom: 16px;
-                width: auto;
-            }
-
-            .back-button:hover {
-                background: #cbd5e0;
-            }
-
-            .export-buttons {
-                display: grid;
-                grid-template-columns: 1fr 1fr;
-                gap: 12px;
-                margin-top: 20px;
-            }
-        </style>
-    </head>
-    <body>
-        <!-- START SCREEN -->
-        <div id="startScreen" class="screen active">
-            <div class="container">
-                <div class="card">
-                    <div class="header">
-                        <img src="data:image/jpeg;base64,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" alt="MoodMirror Logo" class="logo" />
-                        <h1>MoodMirror</h1>
-                        <p class="subtitle">
-                            Real-time multi-face emotion detection and analysis
-                        </p>
-                    </div>
-                    <button id="startScanButton">
-                        Start Scan
-                    </button>
-                </div>
-            </div>
-        </div>
-
-        <!-- SCANNING SCREEN -->
-        <div id="scanningScreen" class="screen">
-            <div class="container">
-                <div class="card card-wide">
-                    <div class="grid-2col">
-                        <div>
-                            <div class="video-container">
-                                <video
-                                    id="video"
-                                    autoplay
-                                    muted
-                                    playsinline
-                                ></video>
-                                <canvas id="canvas"></canvas>
-                                <span id="faceStatus" class="badge scanning">
-                                    Scanning...
-                                </span>
-                                <div id="scanInfo" class="scan-info">
-                                    Faces: 0 | Scans: 0
-                                </div>
-                            </div>
-                            <button id="endScanButton" class="secondary">
-                                End Scan
-                            </button>
-                        </div>
-                        <div class="emotions-panel">
-                            <h3>Live Detection</h3>
-                            <div id="liveEmotions"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- ANALYTICS SCREEN -->
-        <div id="analyticsScreen" class="screen">
-            <div class="container">
+        }
+    </style>
+</head>
+<body>
+    <!-- START SCREEN -->
+    <div id="startScreen" class="screen active">
+        <div class="container">
+            <div class="card">
                 <div class="header">
-                    <img src="data:image/jpeg;base64,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" alt="MoodMirror Logo" class="logo" />
-                    <h1>Analytics Dashboard</h1>
-                    <p class="subtitle">Comprehensive emotion analysis report</p>
+                    <img src="data:image/jpeg;base64,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" class="logo" alt="MoodMirror Logo" />
+                    <h1>MoodMirror</h1>
+                    <p class="subtitle">Multi-face emotion detection and analysis</p>
                 </div>
-
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalFaces">0</div>
-                        <div class="stat-label">Total Faces Detected</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="totalScans">0</div>
-                        <div class="stat-label">Total Emotion Scans</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" id="scanDuration">0s</div>
-                        <div class="stat-label">Scan Duration</div>
-                    </div>
-                </div>
-
-                <div class="chart-container">
-                    <h3 class="chart-title">Emotion Distribution</h3>
-                    <canvas id="emotionChart"></canvas>
-                </div>
-
-                <div class="chart-container">
-                    <h3 class="chart-title">Emotion Trends Over Time</h3>
-                    <canvas id="trendChart"></canvas>
-                </div>
-
-                <div class="export-buttons">
-                    <button id="exportCSVButton">
-                        Export as CSV
-                    </button>
-                    <button id="exportJSONButton" class="secondary">
-                        Export as JSON
-                    </button>
-                </div>
-
-                <button id="scanAgainButton" style="margin-top: 12px">
-                    Scan Again
-                </button>
+                <button id="startScanButton">Start Scan</button>
             </div>
         </div>
+    </div>
 
-        <script>
-            const emotionLabels = {
-                neutral: "Neutral",
-                happy: "Happy",
-                sad: "Sad",
-                angry: "Angry",
-                fearful: "Fearful",
-                disgusted: "Disgusted",
-                surprised: "Surprised",
-            };
+    <!-- SCANNING SCREEN -->
+    <div id="scanningScreen" class="screen">
+        <div class="container">
+            <div class="card card-wide">
+                <div class="grid-2col">
+                    <div>
+                        <div class="video-container">
+                            <video id="video" autoplay muted playsinline></video>
+                            <canvas id="canvas"></canvas>
+                            <div id="scanInfo" class="scan-info">
+                                Faces: 0 | Scans: 0 | Duration: 0s
+                            </div>
+                        </div>
+                        <button id="endScanButton" class="secondary">End Scan</button>
+                    </div>
+                    <div class="emotions-panel">
+                        <h3>Live Detection</h3>
+                        <div id="liveEmotions"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-            let video;
-            let canvas;
-            let modelsLoaded = false;
-            let isScanning = false;
-            let emotionData = [];
-            let scanStartTime;
-            let detectionInterval;
-            let emotionChart;
-            let trendChart;
+    <!-- ANALYTICS SCREEN -->
+    <div id="analyticsScreen" class="screen">
+        <div class="container">
+            <div class="header">
+                <h1>Analytics Dashboard</h1>
+                <p class="subtitle">Comprehensive emotion analysis report</p>
+            </div>
 
-            async function loadModels() {
-                try {
-                    const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/";
-                    await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-                    await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
-                    modelsLoaded = true;
-                    console.log("Face detection models loaded");
-                } catch (error) {
-                    console.error("Error loading models:", error);
-                }
-            }
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalFaces">0</div>
+                    <div class="stat-label">Total Faces Detected</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalScans">0</div>
+                    <div class="stat-label">Total Emotion Scans</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="scanDuration">0s</div>
+                    <div class="stat-label">Scan Duration</div>
+                </div>
+            </div>
 
-            function showScreen(screenId) {
-                document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
-                document.getElementById(screenId).classList.add("active");
-            }
+            <div class="chart-container">
+                <h3 class="chart-title">Emotion Distribution</h3>
+                <canvas id="emotionChart"></canvas>
+            </div>
 
-            async function startCamera() {
-                try {
-                    const stream = await navigator.mediaDevices.getUserMedia({
-                        video: { width: 1280, height: 720 },
-                    });
-                    video.srcObject = stream;
+            <div class="chart-container">
+                <h3 class="chart-title">Emotion Trends Over Time</h3>
+                <canvas id="trendChart"></canvas>
+            </div>
 
-                    video.addEventListener("loadedmetadata", () => {
+            <div class="export-buttons">
+                <button id="exportCSVButton">Export as CSV</button>
+                <button id="exportJSONButton" class="secondary">Export as JSON</button>
+            </div>
+
+            <button id="scanAgainButton" style="margin-top: 12px">Scan Again</button>
+        </div>
+    </div>
+
+    <script>
+        const emotionLabels = {
+            neutral: "Neutral",
+            happy: "Happy",
+            sad: "Sad",
+            angry: "Angry",
+            fearful: "Fearful",
+            disgusted: "Disgusted",
+            surprised: "Surprised",
+        };
+
+        let video, canvas;
+        let isScanning = false;
+        let emotionData = [];
+        let scanStartTime;
+        let detectionInterval;
+        let emotionChart, trendChart;
+        let scanDurationInterval;
+
+        function showScreen(screenId) {
+            document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+            document.getElementById(screenId).classList.add("active");
+        }
+
+        async function loadModels() {
+            const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/";
+            await Promise.all([
+                faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+                faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
+            ]);
+        }
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: { width: 1280, height: 720, facingMode: "user" }
+                });
+                video.srcObject = stream;
+                await new Promise(resolve => {
+                    video.onloadedmetadata = () => {
                         canvas.width = video.videoWidth;
                         canvas.height = video.videoHeight;
-                    });
-                } catch (error) {
-                    console.error("Camera access error:", error);
-                    alert("Unable to access camera. Please ensure you have granted camera permissions.");
-                }
+                        resolve();
+                    };
+                });
+            } catch (error) {
+                alert("Unable to access camera. Please ensure you have granted camera permissions.");
+                throw error;
             }
+        }
 
-            function stopCamera() {
-                if (video.srcObject) {
-                    video.srcObject.getTracks().forEach(track => track.stop());
-                    video.srcObject = null;
-                }
-                if (detectionInterval) {
-                    clearInterval(detectionInterval);
-                }
+        function stopCamera() {
+            if (video.srcObject) {
+                video.srcObject.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
             }
+            if (detectionInterval) clearInterval(detectionInterval);
+            if (scanDurationInterval) clearInterval(scanDurationInterval);
+        }
 
-            async function detectFaces() {
-                if (!modelsLoaded || !isScanning) return;
+        async function detectFaces() {
+            if (!isScanning) return;
 
+            try {
                 const detections = await faceapi
                     .detectAllFaces(video, new faceapi.TinyFaceDetectorOptions())
                     .withFaceExpressions();
@@ -555,208 +462,193 @@
                         liveEmotionsContainer.appendChild(faceCard);
                     });
 
+                    const uniqueFaces = new Set(emotionData.map(d => d.faceId)).size;
+                    const duration = Math.floor((Date.now() - scanStartTime) / 1000);
                     document.getElementById("scanInfo").textContent = 
-                        `Faces: ${detections.length} | Scans: ${emotionData.length}`;
+                        `Faces: ${detections.length} | Scans: ${emotionData.length} | Duration: ${duration}s`;
                 }
+            } catch (error) {
+                console.error("Detection error:", error);
             }
+        }
 
-            function startScanning() {
-                isScanning = true;
-                scanStartTime = Date.now();
-                emotionData = [];
-                showScreen("scanningScreen");
-                startCamera();
+        function updateDuration() {
+            const duration = Math.floor((Date.now() - scanStartTime) / 1000);
+            const uniqueFaces = new Set(emotionData.map(d => d.faceId)).size;
+            document.getElementById("scanInfo").textContent = 
+                `Faces: ${uniqueFaces} | Scans: ${emotionData.length} | Duration: ${duration}s`;
+        }
+
+        async function startScanning() {
+            isScanning = true;
+            scanStartTime = Date.now();
+            emotionData = [];
+            showScreen("scanningScreen");
+            
+            try {
+                await startCamera();
                 detectionInterval = setInterval(detectFaces, 500);
-            }
-
-            function endScanning() {
+                scanDurationInterval = setInterval(updateDuration, 1000);
+            } catch (error) {
                 isScanning = false;
-                stopCamera();
-                if (detectionInterval) {
-                    clearInterval(detectionInterval);
-                }
-                showAnalytics();
-            }
-
-            function showAnalytics() {
-                if (emotionData.length === 0) {
-                    alert("No emotion data collected. Please scan again.");
-                    showScreen("startScreen");
-                    return;
-                }
-
-                const scanDuration = Math.round((Date.now() - scanStartTime) / 1000);
-                const uniqueFaces = new Set(emotionData.map(d => d.faceId)).size;
-
-                document.getElementById("totalFaces").textContent = uniqueFaces;
-                document.getElementById("totalScans").textContent = emotionData.length;
-                document.getElementById("scanDuration").textContent = scanDuration + "s";
-
-                createEmotionChart();
-                createTrendChart();
-                
-                showScreen("analyticsScreen");
-            }
-
-            function createEmotionChart() {
-                const emotionCounts = {};
-                Object.keys(emotionLabels).forEach(key => {
-                    emotionCounts[key] = 0;
-                });
-
-                emotionData.forEach(scan => {
-                    emotionCounts[scan.dominant]++;
-                });
-
-                const ctx = document.getElementById("emotionChart").getContext("2d");
-                if (emotionChart) emotionChart.destroy();
-
-                emotionChart = new Chart(ctx, {
-                    type: "bar",
-                    data: {
-                        labels: Object.keys(emotionLabels).map(key => emotionLabels[key]),
-                        datasets: [{
-                            label: "Emotion Frequency",
-                            data: Object.values(emotionCounts),
-                            backgroundColor: [
-                                "#f3f4f6", "#fef3c7", "#dbeafe", 
-                                "#fee2e2", "#fed7aa", "#d1fae5", "#e9d5ff"
-                            ],
-                            borderColor: [
-                                "#e5e7eb", "#fde68a", "#bfdbfe",
-                                "#fecaca", "#fdba74", "#a7f3d0", "#d8b4fe"
-                            ],
-                            borderWidth: 2
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        plugins: {
-                            legend: { display: false }
-                        },
-                        scales: {
-                            y: { beginAtZero: true }
-                        }
-                    }
-                });
-            }
-
-            function createTrendChart() {
-                const timePoints = 10;
-                const interval = Math.max(1, Math.floor(emotionData.length / timePoints));
-                const trends = {};
-
-                Object.keys(emotionLabels).forEach(key => {
-                    trends[key] = [];
-                });
-
-                for (let i = 0; i < emotionData.length; i += interval) {
-                    const chunk = emotionData.slice(i, i + interval);
-                    Object.keys(emotionLabels).forEach(emotion => {
-                        const avg = chunk.reduce((sum, d) => sum + (d[emotion] || 0), 0) / chunk.length;
-                        trends[emotion].push((avg * 100).toFixed(1));
-                    });
-                }
-
-                const ctx = document.getElementById("trendChart").getContext("2d");
-                if (trendChart) trendChart.destroy();
-
-                trendChart = new Chart(ctx, {
-                    type: "line",
-                    data: {
-                        labels: Array.from({ length: trends.neutral.length }, (_, i) => `T${i + 1}`),
-                        datasets: Object.keys(emotionLabels).map(key => ({
-                            label: emotionLabels[key],
-                            data: trends[key],
-                            borderWidth: 2,
-                            tension: 0.4,
-                            fill: false
-                        }))
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        plugins: {
-                            legend: { display: true, position: 'top' }
-                        },
-                        scales: {
-                            y: { 
-                                beginAtZero: true,
-                                max: 100,
-                                title: { display: true, text: 'Confidence (%)' }
-                            },
-                            x: {
-                                title: { display: true, text: 'Time Segments' }
-                            }
-                        }
-                    }
-                });
-            }
-
-            function exportCSV() {
-                let csv = "Timestamp,Face ID,Dominant Emotion,Neutral,Happy,Sad,Angry,Fearful,Disgusted,Surprised\n";
-                
-                emotionData.forEach(scan => {
-                    csv += `${scan.timestamp},${scan.faceId},${emotionLabels[scan.dominant]},`;
-                    csv += `${(scan.neutral * 100).toFixed(2)},${(scan.happy * 100).toFixed(2)},`;
-                    csv += `${(scan.sad * 100).toFixed(2)},${(scan.angry * 100).toFixed(2)},`;
-                    csv += `${(scan.fearful * 100).toFixed(2)},${(scan.disgusted * 100).toFixed(2)},`;
-                    csv += `${(scan.surprised * 100).toFixed(2)}\n`;
-                });
-
-                const blob = new Blob([csv], { type: "text/csv" });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `moodmirror-scan-${Date.now()}.csv`;
-                a.click();
-                URL.revokeObjectURL(url);
-            }
-
-            function exportJSON() {
-                const exportData = {
-                    scanDate: new Date().toISOString(),
-                    duration: Math.round((Date.now() - scanStartTime) / 1000),
-                    totalFaces: new Set(emotionData.map(d => d.faceId)).size,
-                    totalScans: emotionData.length,
-                    emotionData: emotionData
-                };
-
-                const blob = new Blob([JSON.stringify(exportData, null, 2)], { 
-                    type: "application/json" 
-                });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `moodmirror-scan-${Date.now()}.json`;
-                a.click();
-                URL.revokeObjectURL(url);
-            }
-
-            document.getElementById("startScanButton").addEventListener("click", () => {
-                if (!modelsLoaded) {
-                    alert("Loading AI models, please wait...");
-                    return;
-                }
-                startScanning();
-            });
-
-            document.getElementById("endScanButton").addEventListener("click", endScanning);
-
-            document.getElementById("scanAgainButton").addEventListener("click", () => {
-                emotionData = [];
                 showScreen("startScreen");
+            }
+        }
+
+        function endScanning() {
+            isScanning = false;
+            stopCamera();
+            showAnalytics();
+        }
+
+        function showAnalytics() {
+            if (emotionData.length === 0) {
+                alert("No emotion data collected. Please scan again.");
+                showScreen("startScreen");
+                return;
+            }
+
+            const scanDuration = Math.round((Date.now() - scanStartTime) / 1000);
+            const uniqueFaces = new Set(emotionData.map(d => d.faceId)).size;
+
+            document.getElementById("totalFaces").textContent = uniqueFaces;
+            document.getElementById("totalScans").textContent = emotionData.length;
+            document.getElementById("scanDuration").textContent = scanDuration + "s";
+
+            createEmotionChart();
+            createTrendChart();
+            
+            showScreen("analyticsScreen");
+        }
+
+        function createEmotionChart() {
+            const emotionCounts = {};
+            Object.keys(emotionLabels).forEach(key => {
+                emotionCounts[key] = 0;
             });
 
-            document.getElementById("exportCSVButton").addEventListener("click", exportCSV);
-            document.getElementById("exportJSONButton").addEventListener("click", exportJSON);
-
-            window.addEventListener("load", () => {
-                video = document.getElementById("video");
-                canvas = document.getElementById("canvas");
-                loadModels();
+            emotionData.forEach(scan => {
+                emotionCounts[scan.dominant]++;
             });
-        </script>
-    </body>
+
+            const ctx = document.getElementById("emotionChart").getContext("2d");
+            if (emotionChart) emotionChart.destroy();
+
+            emotionChart = new Chart(ctx, {
+                type: "bar",
+                data: {
+                    labels: Object.keys(emotionLabels).map(key => emotionLabels[key]),
+                    datasets: [{
+                        label: "Emotion Frequency",
+                        data: Object.values(emotionCounts),
+                        backgroundColor: ["#f3f4f6", "#fef3c7", "#dbeafe", "#fee2e2", "#fed7aa", "#d1fae5", "#e9d5ff"],
+                        borderColor: ["#e5e7eb", "#fde68a", "#bfdbfe", "#fecaca", "#fdba74", "#a7f3d0", "#d8b4fe"],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        function createTrendChart() {
+            const timePoints = 10;
+            const interval = Math.max(1, Math.floor(emotionData.length / timePoints));
+            const trends = {};
+
+            Object.keys(emotionLabels).forEach(key => {
+                trends[key] = [];
+            });
+
+            for (let i = 0; i < emotionData.length; i += interval) {
+                const chunk = emotionData.slice(i, i + interval);
+                Object.keys(emotionLabels).forEach(emotion => {
+                    const avg = chunk.reduce((sum, d) => sum + (d[emotion] || 0), 0) / chunk.length;
+                    trends[emotion].push((avg * 100).toFixed(1));
+                });
+            }
+
+            const ctx = document.getElementById("trendChart").getContext("2d");
+            if (trendChart) trendChart.destroy();
+
+            trendChart = new Chart(ctx, {
+                type: "line",
+                data: {
+                    labels: Array.from({ length: trends.neutral.length }, (_, i) => `T${i + 1}`),
+                    datasets: Object.keys(emotionLabels).map(key => ({
+                        label: emotionLabels[key],
+                        data: trends[key],
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: false
+                    }))
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: true, position: 'top' } },
+                    scales: {
+                        y: { beginAtZero: true, max: 100, title: { display: true, text: 'Confidence (%)' } },
+                        x: { title: { display: true, text: 'Time Segments' } }
+                    }
+                }
+            });
+        }
+
+        function exportCSV() {
+            let csv = "Timestamp,Face ID,Dominant Emotion,Neutral,Happy,Sad,Angry,Fearful,Disgusted,Surprised\n";
+            
+            emotionData.forEach(scan => {
+                csv += `${scan.timestamp},${scan.faceId},${emotionLabels[scan.dominant]},`;
+                csv += `${(scan.neutral * 100).toFixed(2)},${(scan.happy * 100).toFixed(2)},`;
+                csv += `${(scan.sad * 100).toFixed(2)},${(scan.angry * 100).toFixed(2)},`;
+                csv += `${(scan.fearful * 100).toFixed(2)},${(scan.disgusted * 100).toFixed(2)},`;
+                csv += `${(scan.surprised * 100).toFixed(2)}\n`;
+            });
+
+            const blob = new Blob([csv], { type: "text/csv" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `moodmirror-scan-${Date.now()}.csv`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function exportJSON() {
+            const exportData = {
+                scanDate: new Date().toISOString(),
+                duration: Math.round((Date.now() - scanStartTime) / 1000),
+                totalFaces: new Set(emotionData.map(d => d.faceId)).size,
+                totalScans: emotionData.length,
+                emotionData: emotionData
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `moodmirror-scan-${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+
+        document.getElementById("startScanButton").addEventListener("click", startScanning);
+        document.getElementById("endScanButton").addEventListener("click", endScanning);
+        document.getElementById("scanAgainButton").addEventListener("click", () => {
+            emotionData = [];
+            showScreen("startScreen");
+        });
+        document.getElementById("exportCSVButton").addEventListener("click", exportCSV);
+        document.getElementById("exportJSONButton").addEventListener("click", exportJSON);
+
+        window.addEventListener("load", () => {
+            video = document.getElementById("video");
+            canvas = document.getElementById("canvas");
+            loadModels();
+        });
+    </script>
+</body>
 </html>
