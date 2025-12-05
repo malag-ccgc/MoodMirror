@@ -870,7 +870,7 @@
                         <div class="loading-logo-ring"></div>
                         <div class="loading-logo-ring"></div>
                         <div class="loading-logo-ring"></div>
-                        <img src="attached_assets/IMG_4858_1764856897036.jpeg" class="loading-logo" alt="Calaca City Global College Logo" />
+                        <img src="logo.jpeg" class="loading-logo" alt="Calaca City Global College Logo" />
                     </div>
                     <h1 class="loading-title">MoodMirror</h1>
                     <div class="loading-progress">
@@ -888,7 +888,7 @@
             <div class="container">
                 <div class="card start-card">
                     <div class="header">
-                        <img src="attached_assets/IMG_4858_1764856897036.jpeg" class="logo" alt="Calaca City Global College Logo" />
+                        <img src="logo.jpeg" class="logo" alt="Calaca City Global College Logo" />
                         <h1>MoodMirror</h1>
                         <p class="subtitle">Calaca City Global College</p>
                     </div>
@@ -1039,138 +1039,77 @@
                 const adjustedScores = {};
                 
                 for (const [emotion, rawScore] of Object.entries(expressions)) {
-                    const boost = emotionBoostFactors[emotion] || 1.0;
-                    const minThreshold = emotionMinThresholds[emotion] || 0.1;
-                    
-                    if (rawScore >= minThreshold) {
-                        adjustedScores[emotion] = rawScore * boost;
+                    if (rawScore < emotionMinThresholds[emotion]) {
+                        adjustedScores[emotion] = 0;
                     } else {
-                        adjustedScores[emotion] = rawScore * 0.3;
+                        adjustedScores[emotion] = rawScore * emotionBoostFactors[emotion];
                     }
                 }
 
-                const nonNeutralEmotions = Object.entries(expressions)
-                    .filter(([e]) => e !== 'neutral')
-                    .reduce((sum, [, score]) => sum + score, 0);
-                
-                if (nonNeutralEmotions > 0.10) {
-                    adjustedScores.neutral *= 0.3;
-                }
-                if (nonNeutralEmotions > 0.20) {
-                    adjustedScores.neutral *= 0.2;
-                }
+                let maxScore = 0;
+                let dominantEmotion = 'neutral';
+                let confidence = 0;
 
-                const disgustIndicators = 
-                    (expressions.disgusted || 0) + 
-                    (expressions.angry || 0) * 0.4 + 
-                    (expressions.sad || 0) * 0.25;
-                
-                if (disgustIndicators > 0.08 && expressions.disgusted > 0.02) {
-                    adjustedScores.disgusted *= 2.0;
-                }
-
-                const angerIndicators = 
-                    (expressions.angry || 0) + 
-                    (expressions.disgusted || 0) * 0.3;
-                
-                if (angerIndicators > 0.10 && expressions.angry > 0.04) {
-                    adjustedScores.angry *= 1.5;
-                }
-
-                const sadIndicators = 
-                    (expressions.sad || 0) + 
-                    (expressions.fearful || 0) * 0.3;
-                
-                if (sadIndicators > 0.10 && expressions.sad > 0.04) {
-                    adjustedScores.sad *= 1.5;
-                }
-
-                const fearIndicators = 
-                    (expressions.fearful || 0) + 
-                    (expressions.surprised || 0) * 0.3 +
-                    (expressions.sad || 0) * 0.2;
-                
-                if (fearIndicators > 0.10 && expressions.fearful > 0.03) {
-                    adjustedScores.fearful *= 1.5;
-                }
-
-                let bestEmotion = 'neutral';
-                let highestScore = 0;
-                
                 for (const [emotion, score] of Object.entries(adjustedScores)) {
-                    if (score > highestScore) {
-                        highestScore = score;
-                        bestEmotion = emotion;
+                    if (score > maxScore) {
+                        maxScore = score;
+                        dominantEmotion = emotion;
+                        confidence = expressions[emotion];
                     }
                 }
 
                 return {
-                    emotion: bestEmotion,
-                    confidence: expressions[bestEmotion] * 100,
-                    adjustedConfidence: highestScore * 100 / (emotionBoostFactors[bestEmotion] || 1)
+                    emotion: dominantEmotion,
+                    confidence: Math.round(confidence * 100)
                 };
             }
 
-            function updateLoadingProgress(percent, statusText) {
-                const progressFill = document.getElementById('loadingProgressFill');
-                const statusElement = document.getElementById('loadingStatus');
-                
-                if (progressFill) {
-                    progressFill.style.width = percent + '%';
-                }
-                if (statusElement) {
-                    statusElement.innerHTML = statusText + '<span class="loading-dots"></span>';
-                }
-            }
-
             async function loadModels() {
-                const MODEL_URL = "https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/";
+                document.getElementById('loadingStatus').innerHTML = 'Loading AI models<span class="loading-dots"></span>';
                 
                 try {
-                    updateLoadingProgress(10, 'Loading face detector');
+                    const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+                    
+                    document.getElementById('loadingProgressFill').style.width = '20%';
                     await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
-                    
-                    updateLoadingProgress(30, 'Loading expression analyzer');
-                    await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
-                    
-                    updateLoadingProgress(55, 'Loading landmark detector');
+                    document.getElementById('loadingProgressFill').style.width = '40%';
                     await faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL);
-                    
-                    updateLoadingProgress(80, 'Loading recognition model');
+                    document.getElementById('loadingProgressFill').style.width = '60%';
                     await faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL);
-                    
-                    updateLoadingProgress(100, 'Ready');
-                    
+                    document.getElementById('loadingProgressFill').style.width = '80%';
+                    await faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL);
+                    document.getElementById('loadingProgressFill').style.width = '100%';
+
                     modelsLoaded = true;
-                    console.log("AI models loaded successfully");
+                    document.getElementById('loadingStatus').textContent = 'Ready to start';
                     
                     setTimeout(() => {
                         showScreen('startScreen');
-                    }, 800);
-                    
+                    }, 500);
+
                 } catch (error) {
                     console.error("Error loading models:", error);
-                    updateLoadingProgress(0, 'Error loading models - Please refresh');
+                    document.getElementById('loadingStatus').textContent = 'Error loading models. Please refresh.';
                 }
             }
 
-            function euclideanDistance(descriptor1, descriptor2) {
-                return Math.sqrt(
-                    descriptor1.reduce((sum, val, i) => 
-                        sum + Math.pow(val - descriptor2[i], 2), 0
-                    )
-                );
-            }
-
             function findMatchingPerson(descriptor) {
+                if (trackedPeople.length === 0) return null;
+
                 let bestMatch = null;
                 let lowestDistance = Infinity;
 
                 for (const person of trackedPeople) {
-                    for (const storedDescriptor of person.descriptors) {
-                        const distance = euclideanDistance(descriptor, storedDescriptor);
-                        if (distance < lowestDistance) {
-                            lowestDistance = distance;
+                    if (person.descriptors.length > 0) {
+                        // Calculate average distance to all descriptors of this person
+                        let totalDistance = 0;
+                        for (const savedDescriptor of person.descriptors) {
+                            totalDistance += faceapi.euclideanDistance(descriptor, savedDescriptor);
+                        }
+                        const avgDistance = totalDistance / person.descriptors.length;
+
+                        if (avgDistance < lowestDistance) {
+                            lowestDistance = avgDistance;
                             bestMatch = person;
                         }
                     }
